@@ -17,3 +17,36 @@ function openAuth(mode='login'){$('#modal').innerHTML=auth(mode);$('#authform').
 function bind(){document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{let id=b.dataset.add,x=S.cart.find(a=>a.id===id),q=Number($('#dq')?.value||1);x?x.qty+=q:S.cart.push({id,qty:q});save();toast('Added to cart')});document.querySelectorAll('[data-wish]').forEach(b=>b.onclick=e=>{e.stopPropagation();let i=S.wish.indexOf(b.dataset.wish);i>=0?S.wish.splice(i,1):S.wish.push(b.dataset.wish);save();render()});document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{S.cart=S.cart.filter(x=>x.id!==b.dataset.remove);save();render()});document.querySelectorAll('[data-cq]').forEach(b=>b.onclick=()=>{let x=S.cart.find(a=>a.id===b.dataset.cq);x.qty+=+b.dataset.d;if(x.qty<1)S.cart=S.cart.filter(a=>a.id!==x.id);save();render()});document.querySelectorAll('[data-detailqty]').forEach(b=>b.onclick=()=>$('#dq').value=Math.max(1,+$('#dq').value+ +b.dataset.detailqty));document.querySelectorAll('[data-buy]').forEach(b=>{b.onclick=()=>{let x=S.cart.find(a=>a.id===b.dataset.buy),q=+$('#dq').value;x?x.qty=q:S.cart.push({id:b.dataset.buy,qty:q});save();location.hash='checkout'}});document.querySelectorAll('[data-quick]').forEach(b=>b.onclick=()=>{let p=product(b.dataset.quick);$('#modal').innerHTML=`<div class="overlay"><div class="quickmodal"><button class="close" data-close>×</button><img src="${p.image}"><div><span class="eyebrow">${p.category}</span><h2>${p.name}</h2><div class="rating">★ ${p.rating}</div><h2>${money(p.price)}</h2><button class="btn green full" data-add="${p.id}">Add to Cart</button></div></div></div>`;$('.quickmodal [data-close]').onclick=()=>$('#modal').innerHTML='';bind()});$('#checkout')?.addEventListener('click',()=>location.hash='checkout');$('#place')?.addEventListener('click',place);$('#cat')?.addEventListener('change',e=>{S.cat=e.target.value;render()});$('#sort')?.addEventListener('change',e=>{S.sort=e.target.value;render()});$('#rate')?.addEventListener('change',e=>{S.rating=+e.target.value;render()});$('#max')?.addEventListener('change',e=>{S.max=+e.target.value;render()});$('#clear')?.addEventListener('click',()=>{S.cat='All';S.max=100000;S.rating=0;S.sort='featured';render()});$('#loginopen')?.addEventListener('click',()=>openAuth());$('#logout')?.addEventListener('click',async()=>{await signOut(auth);location.hash='home';toast('Logged out')});$('#profileform')?.addEventListener('submit',async e=>{e.preventDefault();await updateProfile(auth.currentUser,{displayName:$('#pname').value});toast('Profile updated')});}
 function render(){let h=location.hash.slice(1)||'home',a=h.split('/');let v=a[0]==='home'?home():a[0]==='shop'||a[0]==='categories'?shop():a[0]==='product'?productPage(a[1]):a[0]==='cart'?cart():a[0]==='wishlist'?wishlist():a[0]==='profile'?profile():a[0]==='checkout'?checkout():a[0]==='success'?`<section class="section center success"><div class="successicon">✓</div><span class="eyebrow">ORDER CONFIRMED</span><h1>Thank you for your order!</h1><p>Your order was placed successfully.</p><a class="btn green" href="#orders">Track Order</a></section>`:a[0]==='orders'?simple('My Orders','Track your ClickCart purchases.'):a[0]==='notifications'?simple('Notifications','Your latest updates.','fa-bell'):a[0]==='help'?simple('Help Center','How can we help you?','fa-headset'):simple('404','Page not found.','fa-triangle-exclamation');$('#app').innerHTML=v;bind();counts();scrollTo(0,0)}
 $('#search').addEventListener('keydown',e=>{if(e.key==='Enter'){S.q=e.target.value;location.hash='shop'}});$('#cartBtn').onclick=()=>location.hash='cart';$('#wishBtn').onclick=()=>location.hash='wishlist';$('#accountBtn').onclick=()=>S.user?location.hash='profile':openAuth();$('#menu').onclick=()=>$('#nav').classList.toggle('open');$('#newsletter').onsubmit=e=>{e.preventDefault();toast('Subscribed successfully')};window.addEventListener('hashchange',render);onAuthStateChanged(auth,u=>{S.user=u;$('#accountText').textContent=u?(u.displayName||'Account'):'Login'});(async()=>{try{let s=await get(ref(db,'products'));if(s.exists())S.products=Object.entries(s.val()).map(([id,p])=>({id,...p}));else S.products=demo}catch(e){S.products=demo}render()})();
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendPasswordResetEmail,
+  signOut,
+  onAuthStateChanged,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+import {
+  getDatabase,
+  ref,
+  get,
+  set,
+  push
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+import {
+  firebaseConfig
+} from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const db = getDatabase(app);
