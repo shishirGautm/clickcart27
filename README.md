@@ -1,52 +1,44 @@
-# ClickCart Full E-commerce + Admin Dashboard
+# ClickCart — HTML + CSS + JavaScript + Firebase
 
-## Main storefront
-- Modern responsive UI
-- Home, categories, shop, search, filters
-- Product details and quick view
-- Cart and wishlist
-- Firebase Email/Password + Google authentication
-- Password reset
-- Firebase Realtime Database
-- Checkout and order creation
-- COD, eSewa, Khalti, Bank Transfer and Card payment UI
-- Profile, orders, notifications/help placeholders
-- Mobile responsive layout
+This is a vanilla JavaScript conversion of the supplied ClickCart React/Figma design.
 
-## Admin Dashboard
-Open `admin.html` after logging in with an account whose Realtime Database user record has:
-
-`role: "admin"`
-
-Admin features:
-- Dashboard statistics
-- Product add/edit/delete
-- Order list and status updates
-- Customer list
-- Sales/order analytics
-- Admin-only access check
+## Included
+- `index.html` — single-page entry point
+- `style.css` — responsive styling
+- `app.js` — routing, product UI, cart, wishlist, authentication and orders
+- `firebase-config.js` — Firebase Web SDK configuration
+- `firestore.rules` — starter Firestore security rules
 
 ## Firebase setup
-1. Create a Firebase project and Web App.
-2. Enable Authentication -> Email/Password and Google.
-3. Create Realtime Database.
-4. Copy your Firebase web config into `firebase-config.js`.
-5. Apply `firebase-rules.json` in Realtime Database Rules.
-6. Create your user account in ClickCart.
-7. In Realtime Database create `users/YOUR_UID/role` with value `admin`.
-8. Open `admin.html`.
+1. Create a project in Firebase Console.
+2. Add a Web App.
+3. Copy the Firebase web configuration into `firebase-config.js`.
+4. Enable **Authentication → Email/Password**.
+5. Create a **Firestore Database**.
+6. Deploy `firestore.rules`.
+7. Serve the folder with a local web server (ES modules do not work reliably from `file://`).
 
 Example:
+```bash
+python -m http.server 5500
 ```
-users
-  YOUR_UID
-    name: Admin
-    email: your@email.com
-    role: admin
-```
+Then open `http://localhost:5500`.
 
-## Run locally
-Use VS Code Live Server or another local/static HTTP server. Do not open the HTML files directly with `file://` because ES modules need an HTTP server.
+## Firestore structure
+- `users/{uid}/private/cart`
+- `users/{uid}/private/wishlist`
+- `orders/{orderId}`
+- `products/{productId}`
 
-## Payment security
-The payment choices are UI flows. Real eSewa/Khalti/card payments require official merchant integration and secure server-side verification. Never place private payment secrets in frontend JavaScript.
+The Admin page includes a button to sync the demo products into Firestore.
+
+## Important
+The eSewa/Khalti options in this conversion are UI/payment-method fields only. A real payment gateway needs its official merchant credentials, server-side verification and callback handling. Do not put secret payment keys in frontend JavaScript.
+
+## Production
+Before publishing:
+- lock down admin access using Firebase custom claims or a dedicated admin collection
+- use Firebase App Check
+- tighten Firestore rules
+- validate order prices server-side/with Cloud Functions
+- move privileged operations out of the browser
